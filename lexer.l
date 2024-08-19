@@ -8,12 +8,14 @@
 		char constant_name[100];
 		char constant_type[100];
 		int exist;
+		int line_number;
 	}CT[1000];
 	
 	struct SymbolTable{
 		char symbol_name[100];
 		char symbol_type[100];
 		int exist;
+		int line_number;
 	}ST[1000];
 	
 	unsigned long hash(unsigned char *str)
@@ -79,7 +81,7 @@
 	}
 	
 	
-	void insert_ConstantTable(char* name, char* type){
+	void insert_ConstantTable(char* name, char* type, int line){
 		int index = 0;
 		 if(search_ConstantTable(name)){
 			return;
@@ -90,6 +92,7 @@
 			if(CT[val].exist == 0){
 				strcpy(CT[val].constant_name, name);
 				strcpy(CT[val].constant_type, type);
+				CT[val].line_number = line;
 				CT[val].exist = 1;
 				return;
 			}
@@ -102,15 +105,16 @@
 			}
 			strcpy(CT[index].constant_name, name);
 			strcpy(CT[index].constant_type, type);
+			CT[index].line_number = line;
 			CT[index].exist = 1;			
 		}
 	}
 	
-	void insert_SymbolTable(char* name, char* type){
+	void insert_SymbolTable(char* name, char* type, int line){
 		int index = 0;
 		//printf("BBBB");
 		 if(search_SymbolTable(name)){
-			//printf("AAAAAA");
+			
 			return;
 		}
 		else{
@@ -120,6 +124,7 @@
 				strcpy(ST[val].symbol_name, name);
 				strcpy(ST[val].symbol_type, type);
 				ST[val].exist = 1;
+				ST[val].line_number = line;
 				return;
 			}
 			
@@ -131,6 +136,7 @@
 			}
 			strcpy(ST[index].symbol_name, name);
 			strcpy(ST[index].symbol_type, type);
+			ST[index].line_number = line;
 			ST[index].exist = 1;			
 		}
 	}
@@ -138,18 +144,21 @@
 	// Printing Tables
 	void printConstantTable(){
 		printf("CONSTANT TABLE:\n");
+
+		printf("| Value of Constant\t\t| Type of Constant\t\n");
 		for(int i = 0; i < 1000; ++i){
 			if(CT[i].exist){
-				printf("%s\t%s\n", CT[i].constant_name, CT[i].constant_type);
+				printf("%s\t%s\t%d\n", CT[i].constant_name, CT[i].constant_type, CT[i].line_number);
 			}
 		}
 	}
 
 	void printSymbolTable(){
 		printf("SYMBOL TABLE:\n");
+		printf("| Symbols\t\t| Type of Symbol\t\n");
 		for(int i = 0; i < 1000; ++i){
 			if(ST[i].exist){
-				printf("%s\t%s\n", ST[i].symbol_name, ST[i].symbol_type);
+				printf("%s\t%s\t%d\n", ST[i].symbol_name, ST[i].symbol_type, ST[i].line_number);
 			}
 		}
 	}
@@ -161,7 +170,7 @@
 num              	[0-9]
 alpha              	[a-zA-Z]
 alphanum            {alpha}|{num}
-keyword             char|int|main|float|double|short|long|unsigned|signed|main|while|for|break|if|else|continue|return|void|struct
+keyword             char|int|main|float|double|short|long|unsigned|signed|main|while|for|break|if|else|continue|return|void|struct|typedef|enum|static
 escape_sequences    0|a|b|f|n|r|t|v|"\\"|"\""|"\'"
 ws  				[ \t\r\f\v]+
 
@@ -207,13 +216,13 @@ ws  				[ \t\r\f\v]+
 
 ("\"")[^\n\"]*("\"")                         { 
                                                 printf("Line No. %d STRING - %s\n", yylineno, yytext); 
-                                                insert_ConstantTable(yytext, "String");
+                                                insert_ConstantTable(yytext, "String", yylineno);
                                              }
 ("\"")[^\n\"]*                               { printf("Line No. %d ERROR: UNCLOSED STRING - %s\n", yylineno, yytext); return 0;}
 
 ("\'")(("\\"({escape_sequences}))|.)("\'")   { 
                                                 printf("Line No. %d CHARACTER - %s\n", yylineno, yytext); 
-                                                insert_ConstantTable(yytext, "Character");
+                                                insert_ConstantTable(yytext, "Character", yylineno);
                                              }
 
 ("\'")(((("\\")[^0abfnrtv\\\"\'][^\n\']*))|[^\n\''][^\n\'']+)("\'") { 
@@ -255,18 +264,18 @@ ws  				[ \t\r\f\v]+
 
 
 ((_|{alpha})({alphanum}|_)*)[ ]*[(]		 	{	printf("Line No. %d FUNCTION - %s\n", yylineno, yytext);
-												insert_SymbolTable(yytext, "Function");
+												insert_SymbolTable(yytext, "Function", yylineno);
 											}
 
 
 (_|{alpha})({alphanum}|_)*                  { printf("Line No. %d IDENTIFIER - %s\n", yylineno, yytext);
-                                              insert_SymbolTable(yytext, "Identfier");
+                                              insert_SymbolTable(yytext, "Identfier", yylineno);
                                             }
 [+-]?{num}+                                 { printf("Line No. %d INTEGER - %s\n", yylineno, yytext);
-                                              insert_ConstantTable(yytext, "Integer");
+                                              insert_ConstantTable(yytext, "Integer", yylineno);
                                             }
 [+-]?{num}+\.({num}+)?                    	{ printf("Line No. %d FLOATING POINT - %s\n", yylineno, yytext); 
-                                              insert_ConstantTable(yytext, "Floating Point");
+                                              insert_ConstantTable(yytext, "Floating Point", yylineno);
                                             }
 
 "["                                          { printf("Line No. %d LEFT BRACKET - %s\n", yylineno, yytext); }
@@ -276,7 +285,9 @@ ws  				[ \t\r\f\v]+
 "{"                                          { printf("Line No. %d LEFT BRACE - %s\n", yylineno, yytext); }
 "}"                                          { printf("Line No. %d RIGHT BRACE - %s\n", yylineno, yytext); }
 ","                                          { printf("Line No. %d COMMA - %s\n", yylineno, yytext); }
-";"                                          { printf("Line No. %d SEMICOLON - %s\n", yylineno, yytext); }
+";"       										{ printf("Line No. %d SEMICOLON - %s\n", yylineno, yytext); }
+[0-9]*[_a-zA-Z0-9]*							 {printf("Line No. %d ERROR ILLEGAL VARIABLE DECLARATION - %s\n", yylineno, yytext);
+												return 0;}
 .											 { if(yytext[0] == '#')
 													printf("Line No. %d PREPROCESSOR ERROR - %s\n", yylineno, yytext);
 											   else
@@ -292,12 +303,12 @@ int yywrap(){
 int main()
 {
 	extern FILE *yyin;
-	yyin = fopen("test3.c","r");
+	yyin = fopen("test4.c","r");
 	yylex();
-	printf("-------------------------------------\n");
+	printf("--------------------------------------------------------------------------------------\n");
 	printf("CONSTANT TABLE\n");
 	printConstantTable();
-	printf("-------------------------------------\n");
+	printf("--------------------------------------------------------------------------------------\n");
 	printf("SYMBOL TABLE\n");
 	printSymbolTable();
 	return 0;

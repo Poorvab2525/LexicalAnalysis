@@ -1,3 +1,7 @@
+/* code with nested comments as you see
+    /* this is nested comment */
+*/
+
 #include <stdio.h>
 
 // Function to compute factorial iteratively
