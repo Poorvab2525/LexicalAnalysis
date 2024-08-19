@@ -1,5 +1,3 @@
-//error free code
-
 #include<stdio.h>
 #include<conio.h>
 

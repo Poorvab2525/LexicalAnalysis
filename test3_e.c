@@ -2,7 +2,7 @@
 
 int main()
 {
-    char es = '\a';
+    /* Comment
     printf("Hello");
-
+    return 0;
 }

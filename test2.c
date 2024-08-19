@@ -1,7 +1,10 @@
-// code with error
-
 #include<stdio.h>
-#include<conio.h>
-int main() {
-    int x = 100$;
+
+int main()
+{
+    int a;
+    /* This is a declaration of an integer value*/
+
+    printf("Hello World");
+    return 0;
 }

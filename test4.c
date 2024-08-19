@@ -1,4 +1,4 @@
-
+#include<stdio.h>
 int main() {
     /* This is a comment */
     int x = 10;
